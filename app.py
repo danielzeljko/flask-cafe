@@ -104,7 +104,7 @@ def cafe_add():
         url = form.url.data
         address = form.address.data
         city_code = form.city_code.data
-        # todo: img url
+        # TODO: img url
 
         new_cafe = Cafe(
             name=name,
@@ -121,3 +121,33 @@ def cafe_add():
         return redirect(f"/cafes/{new_cafe.id}")
     else:
         return render_template("cafe/add-form.html", form=form)
+
+
+@app.route("/cafes/<int:cafe_id>/edit", methods=["POST", "GET"])
+def cafe_edit(cafe_id):
+    """Show and handle form for editing a cafe."""
+
+    cafe = Cafe.query.get_or_404(cafe_id)
+
+    form = AddCafeForm(obj=cafe)
+    avail_cities = [(city.code, city.name) for city in City.query.all()]
+    form.city_code.choices = avail_cities
+    form.city_code.default = cafe.city_code
+
+    if form.validate_on_submit():
+        cafe.name = form.name.data
+        cafe.description = form.description.data
+        cafe.url = form.url.data
+        cafe.address = form.address.data
+        cafe.city_code = form.city_code.data
+
+        db.session.commit()
+
+        flash(f"{cafe.name} edited.")
+
+        return redirect(f"/cafes/{cafe.id}")
+    else:
+        return render_template(
+            "cafe/edit-form.html",
+            form=form,
+        )
