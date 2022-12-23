@@ -89,6 +89,8 @@ def signup():
 
         do_login(user)
 
+        flash("You are signed up and logged in.")
+
         return redirect("/")
 
     else:
@@ -109,7 +111,7 @@ def login():
             flash(f"Hello, {user.username}!", "success")
             return redirect("/")
 
-        flash("Invalid credentials.", "danger")
+    flash("Invalid credentials.", "danger")
 
     return render_template("auth/login-form.html", form=form)
 
@@ -126,7 +128,7 @@ def logout():
     # form = g.csrf_form
 
     # if form.validate_on_submit():
-    flash("You have successfully logged out.")
+    flash("You should have successfully logged out.")
     do_logout()
 
     return redirect("/")
