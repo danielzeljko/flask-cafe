@@ -1,11 +1,13 @@
 """Flask App for Flask Cafe."""
 
-from flask import Flask, render_template, redirect, flash
+from flask import Flask, render_template, redirect, flash, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 import os
+from sqlalchemy.exc import IntegrityError
 
-from models import db, connect_db, Cafe, City
-from forms import AddCafeForm
+
+from models import db, connect_db, Cafe, City, User
+from forms import AddCafeForm, UserAddForm, UserLoginForm
 
 
 app = Flask(__name__)
@@ -27,28 +29,107 @@ CURR_USER_KEY = "curr_user"
 NOT_LOGGED_IN_MSG = "You are not logged in."
 
 
-# @app.before_request
-# def add_user_to_g():
-#     """If we're logged in, add curr user to Flask global."""
+@app.before_request
+def add_user_to_g():
+    """If we're logged in, add curr user to Flask global."""
 
-#     if CURR_USER_KEY in session:
-#         g.user = User.query.get(session[CURR_USER_KEY])
+    if CURR_USER_KEY in session:
+        g.user = User.query.get(session[CURR_USER_KEY])
 
-#     else:
-#         g.user = None
-
-
-# def do_login(user):
-#     """Log in user."""
-
-#     session[CURR_USER_KEY] = user.id
+    else:
+        g.user = None
 
 
-# def do_logout():
-#     """Logout user."""
+def do_login(user):
+    """Log in user."""
 
-#     if CURR_USER_KEY in session:
-#         del session[CURR_USER_KEY]
+    session[CURR_USER_KEY] = user.id
+
+
+def do_logout():
+    """Logout user."""
+
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
+
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    """Handle user signup.
+
+    Create new user and add to DB. Redirect to home page.
+
+    If form not valid, present form.
+
+    If there already is a user with that username: flash message
+    and re-present form.
+    """
+
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
+
+    form = UserAddForm()
+
+    if form.validate_on_submit():
+        try:
+            user = User.register(
+                username=form.username.data,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                description=form.description.data,
+                password=form.password.data,
+                email=form.email.data,
+                image_url=form.image_url.data or User.image_url.default.arg,
+            )
+            db.session.commit()
+
+        except IntegrityError:
+            flash("Username already taken", "danger")
+            return render_template("auth/signup-form.html", form=form)
+
+        do_login(user)
+
+        return redirect("/")
+
+    else:
+        return render_template("auth/signup-form.html", form=form)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Handle user login and redirect to homepage on success."""
+
+    form = UserLoginForm()
+
+    if form.validate_on_submit():
+        user = User.authenticate(form.username.data, form.password.data)
+
+        if user:
+            do_login(user)
+            flash(f"Hello, {user.username}!", "success")
+            return redirect("/")
+
+        flash("Invalid credentials.", "danger")
+
+    return render_template("auth/login-form.html", form=form)
+
+
+@app.post("/logout")
+def logout():
+    """Handle logout of user and redirect to homepage."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    # Note: Added csrf form to g
+    # form = g.csrf_form
+
+    # if form.validate_on_submit():
+    flash("You have successfully logged out.")
+    do_logout()
+
+    return redirect("/")
 
 
 #######################################
@@ -111,7 +192,7 @@ def cafe_add():
             description=description,
             url=url,
             address=address,
-            city_code=city_code
+            city_code=city_code,
         )
         db.session.add(new_cafe)
         db.session.commit()
