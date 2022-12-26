@@ -204,16 +204,9 @@ def cafe_edit(cafe_id):
     form.city_code.default = cafe.city_code
 
     if form.validate_on_submit():
-        cafe.name = form.name.data
-        cafe.description = form.description.data
-        cafe.url = form.url.data
-        cafe.address = form.address.data
-        cafe.city_code = form.city_code.data
-
+        form.populate_obj(cafe)
         db.session.commit()
-
         flash(f"{cafe.name} edited.")
-
         return redirect(f"/cafes/{cafe.id}")
     else:
         return render_template(
