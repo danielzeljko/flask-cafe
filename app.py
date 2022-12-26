@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 
 from models import db, connect_db, Cafe, City, User
-from forms import AddCafeForm, UserAddForm, UserLoginForm
+from forms import AddCafeForm, UserAddForm, UserLoginForm, ProfileEditForm
 
 
 app = Flask(__name__)
@@ -234,3 +234,39 @@ def cafe_edit(cafe_id):
             "cafe/edit-form.html",
             form=form,
         )
+
+
+# profiles
+
+@app.get("/profile")
+def show_profile():
+    """Show profile page."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get(g.user.id)
+
+    return render_template("profile/detail.html", user=user)
+
+
+@app.route("/profile/edit", methods=["POST", "GET"])
+def edit_profile():
+    """Edit profile page."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get(g.user.id)
+
+    form = ProfileEditForm(obj=user)
+
+    if form.validate_on_submit():
+        form.populate_obj(user)
+        db.session.commit()
+        flash("Profile edited.")
+        return redirect("/profile")
+    else:
+        return render_template("profile/edit-form.html", form=form, user=user)
