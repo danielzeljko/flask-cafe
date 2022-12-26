@@ -5,10 +5,10 @@ from flask_debugtoolbar import DebugToolbarExtension
 import os
 from sqlalchemy.exc import IntegrityError
 
+from generic_views import ListView, DetailView
 
 from models import db, connect_db, Cafe, City, User
 from forms import AddCafeForm, UserAddForm, UserLoginForm, ProfileEditForm
-
 
 app = Flask(__name__)
 
@@ -148,29 +148,15 @@ def homepage():
 #######################################
 # cafes
 
+app.add_url_rule(
+    "/cafes",
+    view_func=ListView.as_view("cafe_list", Cafe),
+)
 
-@app.get("/cafes")
-def cafe_list():
-    """Return list of all cafes."""
-
-    cafes = Cafe.query.order_by("name").all()
-
-    return render_template(
-        "cafe/list.html",
-        cafes=cafes,
-    )
-
-
-@app.get("/cafes/<int:cafe_id>")
-def cafe_detail(cafe_id):
-    """Show detail for cafe."""
-
-    cafe = Cafe.query.get_or_404(cafe_id)
-
-    return render_template(
-        "cafe/detail.html",
-        cafe=cafe,
-    )
+app.add_url_rule(
+    "/cafes/<int:id>",
+    view_func=DetailView.as_view("cafe_detail", Cafe)
+)
 
 
 @app.route("/cafes/add", methods=["POST", "GET"])
