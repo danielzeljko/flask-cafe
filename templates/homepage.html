@@ -7,7 +7,7 @@
 <div class="homepage">
   <h1 class="display-1">Flask Cafe</h1>
   <h3 class="display-5">Where Coffee Dreams Come True.</h3>
-  <a class="mt-5 btn btn-primary" href="/cafes">View Our Cafes</a>
+  <a class="mt-5 btn btn-primary" href="{{ url_for('cafes.cafe_list') }}">View Our Cafes</a>
 </div>
 
 <style>

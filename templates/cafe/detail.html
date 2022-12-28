@@ -24,7 +24,7 @@
     </p>
 
     <p>
-      <a class="btn btn-outline-primary" href="/cafes/{{ item.id }}/edit">
+      <a class="btn btn-outline-primary" href="{{ url_for('cafes.cafe_edit', cafe_id=item.id) }}">
         Edit item
       </a>
     </p>

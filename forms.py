@@ -6,9 +6,7 @@ from models import User, db
 
 from wtforms import (
     StringField,
-    SelectField,
     PasswordField,
-    URLField,
     TextAreaField,
 )
 from wtforms.validators import (
@@ -28,20 +26,6 @@ class ModelForm(BaseModelForm):
     @classmethod
     def get_session(self):
         return db.session
-
-
-class AddCafeForm(FlaskForm):
-    """Form for adding cafes."""
-
-    name = StringField("Name", validators=[DataRequired()])
-    description = TextAreaField("Description", validators=[Optional(), DataRequired()])
-    url = URLField("URL", validators=[Optional(), URL()])
-    address = StringField("Address", validators=[DataRequired()])
-    city_code = SelectField(
-        "City",
-        validators=[DataRequired()],
-    )
-    image_url = StringField("(Optional) Image URL", validators=[Optional(), URL()])
 
 
 class UserAddForm(BaseModelForm):
