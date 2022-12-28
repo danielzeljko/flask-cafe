@@ -173,7 +173,7 @@ def cafe_add():
         url = form.url.data
         address = form.address.data
         city_code = form.city_code.data
-        # TODO: img url
+        image_url = form.image_url.data or None
 
         new_cafe = Cafe(
             name=name,
@@ -181,6 +181,7 @@ def cafe_add():
             url=url,
             address=address,
             city_code=city_code,
+            image_url=image_url
         )
         db.session.add(new_cafe)
         db.session.commit()

@@ -41,6 +41,7 @@ class AddCafeForm(FlaskForm):
         "City",
         validators=[DataRequired()],
     )
+    image_url = StringField("(Optional) Image URL", validators=[Optional(), URL()])
 
 
 class UserAddForm(BaseModelForm):
