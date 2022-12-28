@@ -8,13 +8,14 @@ from sqlalchemy.exc import IntegrityError
 from decorators import login_required
 
 from models import db, connect_db, User
-from forms import UserAddForm, UserLoginForm, ProfileEditForm
+from user.forms import UserAddForm, UserLoginForm
 
 from cafe.views import cafes
-
+from user.views import users
 
 app = Flask(__name__)
 app.register_blueprint(cafes)
+app.register_blueprint(users)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///flaskcafe"
 app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "shhhh")
@@ -142,33 +143,3 @@ def homepage():
     """Show homepage."""
 
     return render_template("homepage.html")
-
-
-
-# profiles
-
-
-@app.get("/profile")
-@login_required
-def show_profile():
-    """Show profile page."""
-
-    user = User.query.get(g.user.id)
-    return render_template("profile/detail.html", user=user)
-
-
-@app.route("/profile/edit", methods=["POST", "GET"])
-@login_required
-def edit_profile():
-    """Edit profile page."""
-
-    user = User.query.get(g.user.id)
-    form = ProfileEditForm(obj=user)
-
-    if form.validate_on_submit():
-        form.populate_obj(user)
-        db.session.commit()
-        flash("Profile edited.")
-        return redirect("/profile")
-    else:
-        return render_template("profile/edit-form.html", form=form, user=user)

@@ -1,7 +1,6 @@
-
 {% extends 'base.html' %}
 
-{% block title %} FULL NAME {% endblock %}
+{% block title %} {{ user.get_full_name() }} {% endblock %}
 
 {% block content %}
 
@@ -19,7 +18,7 @@
     <p><b>Email:</b> {{user.email}} </p>
 
     <p>
-      <a class="btn btn-outline-primary" href="/profile/edit">
+      <a class="btn btn-outline-primary" href="{{ url_for('users.edit_profile') }}">
         Edit Your Profile
       </a>
     </p>

@@ -17,7 +17,7 @@
         {% endif %}
 
         {% if g.user %}
-        <a href="/profile" class="nav-link">{{g.user.get_full_name()}}</a>
+        <a href="{{ url_for('users.show_profile') }}" class="nav-link">{{g.user.get_full_name()}}</a>
         {% endif %}
       </li>
     </ul>
