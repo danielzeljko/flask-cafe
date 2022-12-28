@@ -120,17 +120,10 @@ def login():
 
 
 @app.post("/logout")
+@login_required
 def logout():
     """Handle logout of user and redirect to homepage."""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-
-    # Note: Added csrf form to g
-    # form = g.csrf_form
-
-    # if form.validate_on_submit():
     flash("You should have successfully logged out.")
     do_logout()
 
@@ -156,10 +149,7 @@ app.add_url_rule(
     view_func=ListView.as_view("cafe_list", Cafe),
 )
 
-app.add_url_rule(
-    "/cafes/<int:id>",
-    view_func=DetailView.as_view("cafe_detail", Cafe)
-)
+app.add_url_rule("/cafes/<int:id>", view_func=DetailView.as_view("cafe_detail", Cafe))
 
 
 @app.route("/cafes/add", methods=["POST", "GET"])
@@ -184,7 +174,7 @@ def cafe_add():
             url=url,
             address=address,
             city_code=city_code,
-            image_url=image_url
+            image_url=image_url,
         )
         db.session.add(new_cafe)
         db.session.commit()
@@ -221,30 +211,22 @@ def cafe_edit(cafe_id):
 
 # profiles
 
+
 @app.get("/profile")
 @login_required
 def show_profile():
     """Show profile page."""
 
-    if not g.user:
-        flash("NOT_LOGGED_IN.", "danger")
-        return redirect("/login")
-
     user = User.query.get(g.user.id)
-
     return render_template("profile/detail.html", user=user)
 
 
 @app.route("/profile/edit", methods=["POST", "GET"])
+@login_required
 def edit_profile():
     """Edit profile page."""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-
     user = User.query.get(g.user.id)
-
     form = ProfileEditForm(obj=user)
 
     if form.validate_on_submit():
