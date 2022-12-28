@@ -1,11 +1,12 @@
 """Flask App for Flask Cafe."""
 
-from flask import Flask, render_template, redirect, flash, session, g
+from flask import Flask, render_template, redirect, request, flash, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 import os
 from sqlalchemy.exc import IntegrityError
 
 from generic_views import ListView, DetailView
+from decorators import login_required
 
 from models import db, connect_db, Cafe, City, User
 from forms import AddCafeForm, UserAddForm, UserLoginForm, ProfileEditForm
@@ -16,7 +17,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///flaskcafe"
 app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "shhhh")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
-app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = True
+app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
 
 toolbar = DebugToolbarExtension(app)
 
@@ -99,19 +100,21 @@ def signup():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Handle user login and redirect to homepage on success."""
+    """Handle user login and redirect to homepage or next url on success."""
 
     form = UserLoginForm()
 
     if form.validate_on_submit():
         user = User.authenticate(form.username.data, form.password.data)
-
+        next_url = request.form.get("next")
         if user:
             do_login(user)
             flash(f"Hello, {user.username}!", "success")
+            if next_url:
+                return redirect(next_url)
             return redirect("/")
-
-    flash("Invalid credentials.", "danger")
+        else:
+            flash("Invalid credentials.", "danger")
 
     return render_template("auth/login-form.html", form=form)
 
@@ -219,12 +222,13 @@ def cafe_edit(cafe_id):
 # profiles
 
 @app.get("/profile")
+@login_required
 def show_profile():
     """Show profile page."""
 
     if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+        flash("NOT_LOGGED_IN.", "danger")
+        return redirect("/login")
 
     user = User.query.get(g.user.id)
 
